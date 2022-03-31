@@ -3,15 +3,23 @@
 #include<set>
 #include<map>
 #include<vector>
+#include <sys/time.h>
 
 using namespace std;
 int m;
-set<string> implicant[27][27];
-set<string> prime_implicant;
+vector<pair<string, bool>> implicant[27][27];
+vector<string> prime_implicant;
 set<pair<int, int>> cnt_set;
 map<int, set<string>> maxterm;
 map<string, set<int>> P;
 vector<string> ans;
+
+double GetTime(void) // get the current time
+{
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + 1e-6 * tv.tv_usec;
+}
 
 void append(string s, int cnt, int n){
     for(int i=n;i<m;i++){
@@ -26,7 +34,7 @@ void append(string s, int cnt, int n){
             return;
         }
     }
-    implicant[0][cnt].insert(s);
+    implicant[0][cnt].push_back(pair<string, int>(s, false));
 }
 
 void getSOP(string &s, int cnt, int val){
@@ -60,19 +68,26 @@ int main(int argc, char* argv[]){
         if(line.size())
             append(line, 0, 0);
     }
+    for(int j=0;j<m;j++){
+        std::sort(implicant[0][j].begin(), implicant[0][j].end());
+        auto it = std::unique(implicant[0][j].begin(), implicant[0][j].end());
+        implicant[0][j].resize(distance(implicant[0][j].begin(),it));
+    }
+
     //primary implicant generation 
+    double t = GetTime();
     for(int i=0;i<=m;i++){
         //get column i
-        set<string> merged;
+        //set<string> merged;
         for(int j=0;j<m;j++){
-            set<string> next_merged;
+            //set<string> next_merged;
             for(auto str1=implicant[i][j].begin();str1!=implicant[i][j].end();str1++){
-                bool merge = false;
+                //bool merge = false;
                 for(auto str2=implicant[i][j+1].begin();str2!=implicant[i][j+1].end();str2++){
                     int diff_idx = -1;
                     int diff_cnt = 0;
                     for(int n=0;n<=m;n++){
-                        if((*str1)[n]!=(*str2)[n]){
+                        if((*str1).first[n]!=(*str2).first[n]){
                             diff_cnt++;
                             if(diff_cnt>1)
                                 break;
@@ -80,32 +95,46 @@ int main(int argc, char* argv[]){
                         }
                     }
                     if(diff_cnt==1){
-                        string tmp = *str1;
+                        string tmp = (*str1).first;
                         tmp[diff_idx] = '-';
-                        implicant[i+1][j].insert(tmp);
-                        next_merged.insert(*str2);
-                        merge = true;
+                        implicant[i+1][j].push_back(pair<string ,bool>(tmp, false));
+                        //next_merged.insert(*str2);
+                        //merge = true;
+                        (*str1).second = true; 
+                        (*str2).second = true; 
                     }
                 }
                 //get prime implicant
-                if(!merge && merged.find(*str1)==merged.end()){
-                    prime_implicant.insert(*str1);
+                //if(!merge && merged.find(*str1)==merged.end()){
+                //    prime_implicant.push_back(*str1);
+                //}
+            }
+            for(auto p:implicant[i][j]){
+                if(p.second==false){
+                    prime_implicant.push_back(p.first);
                 }
             }
-            merged = next_merged;
+            std::sort(implicant[i+1][j].begin(), implicant[i+1][j].end());
+            auto it = std::unique(implicant[i+1][j].begin(), implicant[i+1][j].end());
+            implicant[i+1][j].resize(distance(implicant[i+1][j].begin(),it));
+            //std::unique(implicant[i+1][j].begin(), implicant[i+1][j].end());
+
+            //merged = next_merged;
             if(i!=0)
                 implicant[i][j].clear();
         }
     }
+    cout<<"Time:"<<GetTime()-t<<endl;
     //test prime
     //for(auto i:prime_implicant){
     //    cout<<i<<endl;
     //}
+    cout<<prime_implicant.size()<<endl;
 
     //create table
     for(int j=0;j<=m;j++){
         for(auto it=implicant[0][j].begin(); it!=implicant[0][j].end();it++){
-            maxterm[stoi(*it, 0, 2)] = set<string>();
+            maxterm[stoi((*it).first, 0, 2)] = set<string>();
             //cout<<*it<<":"<<stoi(*it, 0, 2)<<endl;
         }
     }
