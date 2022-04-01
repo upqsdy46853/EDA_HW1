@@ -139,13 +139,21 @@ int main(int argc, char* argv[]){
         auto it = maxterm.find(p.second);
         if(it != maxterm.end()){
             set<string> tmp = it->second;
-            int max = 0;
-            string max_str = *tmp.begin();
+            float max = 0;
+            string max_str;// = *tmp.begin();
             for(auto str:tmp){
-                if(P[str].size()>max){
-                    max = P[str].size();
-                    max_str = str;
+                float score = 0;
+                for(auto i:P[str]){
+                    score+=(float)1/maxterm[i].size();
                 }
+                if(score>max){
+                    max=score;
+                    max_str=str;
+                }
+                //if(P[str].size()>max){
+                //    max = P[str].size();
+                //    max_str = str;
+                //}
             }
             for(auto col:P[max_str]){
                 for(auto str:maxterm[col]){
