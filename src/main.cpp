@@ -71,14 +71,14 @@ int main(int argc, char* argv[]){
             append(line, 0, 0);
     }
     //delete repeat 
-    for(int j=0;j<m;j++){
+    for(int j=0;j<=m;j++){
         std::sort(implicant[0][j].begin(), implicant[0][j].end());
         auto it = std::unique(implicant[0][j].begin(), implicant[0][j].end());
         implicant[0][j].resize(distance(implicant[0][j].begin(),it));
     }
 
     //primary implicant generation 
-    for(int i=0;i<=m;i++){
+    for(int i=0;i<m;i++){
         //get column i
         for(int j=0;j<m;j++){
             for(auto str1=implicant[i][j].begin();str1!=implicant[i][j].end();str1++){
